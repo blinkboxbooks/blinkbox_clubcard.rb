@@ -1,0 +1,59 @@
+# Container module. See Blinkbox::Clubcard
+module Blinkbox
+  # Represents a Clubcard
+  #
+  # A Blinkbox::Clubcard object contains a pair of fields:
+  #
+  #  * The 'number' is the Clubcard's number
+  #  * The 'type' represents the type of Clubcard this is. Currently this library supports the following types:
+  #    - Blinkbox::Clubcard::UK - A standard UK Clubcard
+  class Clubcard
+
+    # The beginning number space for this type of Clubcard. Required.
+    BIN_BEGIN = nil
+
+    # The end number space for this type of Clubcard. Optional.
+    BIN_END   = nil
+
+    # How many digits there are in this type of Clubcard. Required.
+    #
+    # 18 by default.
+    LENGTH    = 18
+
+    attr_accessor :number
+
+    def initialize(number)
+      fail "Invalid Clubcard number for #{self.class}" if number.to_s.length != self.class::LENGTH
+      self.number = number.to_s
+    end
+
+    # Represents the type of Clubcard this is.
+    def type
+      self.class
+    end
+
+    # Generates a random Clubcard of the specified type.
+    def self.generate_random(type: Blinkbox::Clubcard::UK)
+      # If a BIN_END has been declared for that type of Clubcard, pick a random prefix from within a
+      # range.
+      #
+      # If no BIN_END has been declared for that type of Clubcard, simply use the BIN_BEGIN
+      prefix = type::BIN_END ? Random.rand((type::BIN_BEGIN)..(type::BIN_END)).to_s : type::BIN_BEGIN.to_s
+
+      # The unique part of the Clubcard number to be used within the prefix's number space, left padded
+      # with 0s where necessary to meet the Clubcard type's specified LENGTH
+      uniq   = Random.rand(1...(type.uniq_upper)).to_s.rjust((type::LENGTH - prefix.length), '0')
+
+      type.new(prefix + uniq)
+    end
+
+    # Calculates the upper end digit a possible unique number could be within a given Clubcard type's
+    # number space.
+    def self.uniq_upper
+      10**(self::LENGTH - self::BIN_BEGIN.to_s.length)
+    end
+
+  end
+end
+
+require_relative 'clubcard/uk'
