@@ -1,4 +1,4 @@
-# Clubcard
+# blinkbox-clubcard
 
 This gem can generate a random Clubcard.
 
@@ -6,7 +6,7 @@ This gem can generate a random Clubcard.
 
 Add this line to your application's Gemfile:
 
-    gem 'clubcard'
+    gem 'blinkbox-clubcard'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install clubcard
+    $ gem install blinkbox-clubcard
 
 ## Usage
 
@@ -64,5 +64,5 @@ Additionally, you can validate that a Clubcard number matches the type you think
 
 ```ruby
 cc_num = 634004894376285154
-Blinkbox::Clubcard::UK.validate(634004894376285154) # returns true if good; false if bad
+Blinkbox::Clubcard::UK.validate(cc_num) # returns true if good; false if bad
 ```
