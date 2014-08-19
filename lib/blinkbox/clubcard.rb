@@ -1,8 +1,5 @@
 # Container module. See Blinkbox::Clubcard
 module Blinkbox
-
-  class ClubcardError < RuntimeError; end
-
   # Represents a Clubcard
   #
   # A Blinkbox::Clubcard object contains a pair of fields:
@@ -11,7 +8,6 @@ module Blinkbox
   #  * The 'type' represents the type of Clubcard this is. Currently this library supports the following types:
   #    - Blinkbox::Clubcard::UK - A standard UK Clubcard
   class Clubcard
-
     # The beginning number space for this type of Clubcard. Required.
     BIN_BEGIN = nil
 
@@ -61,14 +57,14 @@ module Blinkbox
 
     # Checks if the provided number is valid for that given type of Clubcard
     def self.validate(number)
-      lower_bound =  self.uniq_upper*self::BIN_BEGIN
+      lower_bound =  self.uniq_upper * self::BIN_BEGIN
       if self::BIN_END.nil?
-        upper_bound = lower_bound + (self.uniq_upper-1)
+        upper_bound = lower_bound + (self.uniq_upper - 1)
       else
-        upper_bound =  self.uniq_upper*self::BIN_END
+        upper_bound =  self.uniq_upper * self::BIN_END
       end
 
-      if (number.to_s.length == self::LENGTH and (lower_bound <= number.to_i and upper_bound >= number.to_i))
+      if number.to_s.length == self::LENGTH && (lower_bound <= number.to_i && upper_bound >= number.to_i)
         return true
       else
         return false

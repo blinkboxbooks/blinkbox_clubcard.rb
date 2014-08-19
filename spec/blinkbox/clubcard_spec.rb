@@ -41,7 +41,7 @@ describe Blinkbox::Clubcard do
 
   it "should generate a random UK Clubcard number by default" do
     cc_num = Blinkbox::Clubcard.generate_random_number
-    expect{ Blinkbox::Clubcard::UK.new(cc_num) }.not_to raise_error
+    expect { Blinkbox::Clubcard::UK.new(cc_num) }.not_to raise_error
   end
 end
 
