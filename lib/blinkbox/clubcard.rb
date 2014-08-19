@@ -32,8 +32,8 @@ module Blinkbox
       self.class
     end
 
-    # Generates a random Clubcard of the specified type.
-    def self.generate_random(type: Blinkbox::Clubcard::UK)
+    # Generates a random Clubcard number of the specified type.
+    def self.generate_random_number(type: Blinkbox::Clubcard::UK)
       # If a BIN_END has been declared for that type of Clubcard, pick a random prefix from within a
       # range.
       #
@@ -44,7 +44,13 @@ module Blinkbox
       # with 0s where necessary to meet the Clubcard type's specified LENGTH
       uniq   = Random.rand(1...(type.uniq_upper)).to_s.rjust((type::LENGTH - prefix.length), '0')
 
-      type.new(prefix + uniq)
+      prefix + uniq
+    end
+
+    # Convenience method to generate a random Clubcard number and instantiate an object of that type.
+    def self.create_random_clubcard(type: Blinkbox::Clubcard::UK)
+      cc_num = Blinkbox::Clubcard.generate_random_number(type: type)
+      type.new(cc_num)
     end
 
     # Calculates the upper end digit a possible unique number could be within a given Clubcard type's
@@ -56,4 +62,4 @@ module Blinkbox
   end
 end
 
-require_relative 'clubcard/uk'
+require_relative 'clubcard/types'
