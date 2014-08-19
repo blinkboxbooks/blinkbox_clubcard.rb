@@ -1,6 +1,7 @@
 require "bundler/gem_tasks"
 
-task :default => :test
+task :default => :build
+task :build => :test
 
 desc "Runs all tests"
 task :test do
