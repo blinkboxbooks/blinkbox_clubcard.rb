@@ -1,5 +1,8 @@
 # Container module. See Blinkbox::Clubcard
 module Blinkbox
+
+  class ClubcardError < RuntimeError; end
+
   # Represents a Clubcard
   #
   # A Blinkbox::Clubcard object contains a pair of fields:
@@ -16,14 +19,12 @@ module Blinkbox
     BIN_END   = nil
 
     # How many digits there are in this type of Clubcard. Required.
-    #
-    # 18 by default.
     LENGTH    = 18
 
     attr_accessor :number
 
     def initialize(number)
-      fail "Invalid Clubcard number for #{self.class}" if number.to_s.length != self.class::LENGTH
+      fail "Invalid Clubcard number for #{self.class}: (#{number})" unless self.class.validate(number)
       self.number = number.to_s
     end
 
@@ -33,12 +34,16 @@ module Blinkbox
     end
 
     # Generates a random Clubcard number of the specified type.
-    def self.generate_random_number(type: Blinkbox::Clubcard::UK)
+    def self.generate_random_number(type: self)
+      # Default to generating a UK Clubcard if called from Blinkbox::Clubcard without an explicit
+      # declaration of the type of Clubcard desired.
+      type = Blinkbox::Clubcard::UK if type == Blinkbox::Clubcard
+
       # If a BIN_END has been declared for that type of Clubcard, pick a random prefix from within a
       # range.
       #
       # If no BIN_END has been declared for that type of Clubcard, simply use the BIN_BEGIN
-      prefix = type::BIN_END ? Random.rand((type::BIN_BEGIN)..(type::BIN_END)).to_s : type::BIN_BEGIN.to_s
+      prefix = type::BIN_END ? Random.rand((type::BIN_BEGIN)...(type::BIN_END)).to_s : type::BIN_BEGIN.to_s
 
       # The unique part of the Clubcard number to be used within the prefix's number space, left padded
       # with 0s where necessary to meet the Clubcard type's specified LENGTH
@@ -48,9 +53,26 @@ module Blinkbox
     end
 
     # Convenience method to generate a random Clubcard number and instantiate an object of that type.
-    def self.create_random_clubcard(type: Blinkbox::Clubcard::UK)
+    def self.create_random_clubcard(type: self)
+      type = Blinkbox::Clubcard::UK if type == Blinkbox::Clubcard
       cc_num = Blinkbox::Clubcard.generate_random_number(type: type)
       type.new(cc_num)
+    end
+
+    # Checks if the provided number is valid for that given type of Clubcard
+    def self.validate(number)
+      lower_bound =  self.uniq_upper*self::BIN_BEGIN
+      if self::BIN_END.nil?
+        upper_bound = lower_bound + (self.uniq_upper-1)
+      else
+        upper_bound =  self.uniq_upper*self::BIN_END
+      end
+
+      if (number.to_s.length == self::LENGTH and (lower_bound <= number.to_i and upper_bound >= number.to_i))
+        return true
+      else
+        return false
+      end
     end
 
     # Calculates the upper end digit a possible unique number could be within a given Clubcard type's
@@ -58,7 +80,6 @@ module Blinkbox
     def self.uniq_upper
       10**(self::LENGTH - self::BIN_BEGIN.to_s.length)
     end
-
   end
 end
 
