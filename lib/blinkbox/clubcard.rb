@@ -19,8 +19,10 @@ module Blinkbox
 
     attr_accessor :number
 
-    def initialize(number)
-      fail "Invalid Clubcard number for #{self.class}: (#{number})" unless self.class.validate(number)
+    def initialize(number, validate: true)
+      if validate
+        fail "Invalid Clubcard number for #{self.class}: (#{number})" unless self.class.validate(number)
+      end
       self.number = number.to_s
     end
 
@@ -45,14 +47,27 @@ module Blinkbox
       # with 0s where necessary to meet the Clubcard type's specified LENGTH
       uniq   = Random.rand(1...(type.uniq_upper)).to_s.rjust((type::LENGTH - prefix.length), '0')
 
-      prefix + uniq
+      cc_num = prefix + uniq
+
+      # The last digit now needs to be removed, and from what's remaining; generate the check digit
+      # and append this
+      check_digit = Blinkbox::Clubcard.check_digit(cc_num.chop!)
+      "#{cc_num}#{check_digit}"
     end
 
     # Convenience method to generate a random Clubcard number and instantiate an object of that type.
     def self.create_random_clubcard(type: self)
       type = Blinkbox::Clubcard::UK if type == Blinkbox::Clubcard
       cc_num = Blinkbox::Clubcard.generate_random_number(type: type)
+
       type.new(cc_num)
+    end
+
+    # Returns the check digit for a given number
+    def self.check_digit(number)
+      weighted = number.chars.map.with_index { |c, i| c.to_i * (i.even? ? 2 : 1) }
+      check = 10 - weighted.map { |n| n.digits.sum }.sum.digits.last
+      check == 10 ? 0 : check
     end
 
     # Checks if the provided number is valid for that given type of Clubcard
@@ -64,7 +79,9 @@ module Blinkbox
         upper_bound =  self.uniq_upper * self::BIN_END
       end
 
-      if number.to_s.length == self::LENGTH && (lower_bound <= number.to_i && upper_bound >= number.to_i)
+      if number.to_s.length == self::LENGTH &&
+      (lower_bound <= number.to_i && upper_bound >= number.to_i) &&
+      (number[-1] == Blinkbox::Clubcard.check_digit(number.chop).to_s)
         return true
       else
         return false
@@ -80,3 +97,17 @@ module Blinkbox
 end
 
 require_relative 'clubcard/types'
+
+# Various core extensions
+
+class Fixnum
+  def digits
+    self.to_s.chars.map(&:to_i)
+  end
+end
+
+class Array
+  def sum
+    self.inject(:+)
+  end
+end
